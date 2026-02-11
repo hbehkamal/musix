@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { BottomAppBar, TopAppBar } from "@/components/index";
+import { Providers } from "./providers";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -26,6 +27,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} antialiased bg-neutral-950 text-white`}
       >
+        <Providers>
         <div className="relative min-h-screen overflow-hidden">
           {/* Blurred background based on current track cover */}
           <div className="pointer-events-none absolute inset-0 -z-10">
@@ -66,6 +68,7 @@ export default function RootLayout({
             </div>
           </div>
         </div>
+        </Providers>
       </body>
     </html>
   );
