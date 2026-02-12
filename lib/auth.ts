@@ -32,6 +32,33 @@ export function parseExpiration(value: unknown): Date | null {
   return null;
 }
 
+/** Default token TTL in seconds when backend doesn't send expiration (matches token cookie maxAge). */
+export const DEFAULT_TOKEN_MAX_AGE_SECONDS = COOKIE_OPTIONS.maxAge;
+
+/**
+ * Resolve expiration Date from login API result. Tries common backend fields;
+ * supports absolute (ISO string, Unix seconds) and relative (expires_in seconds).
+ * Returns null if nothing parseable; caller should use a fallback.
+ */
+export function getExpirationFromLoginResult(result: unknown): Date | null {
+  if (result == null || typeof result !== "object") return null;
+  
+  const r = result as Record<string, unknown>;
+  const absolute = r.access_token_expration;
+
+  const parsed = parseExpiration(absolute);
+  if (parsed) return parsed;
+  const expiresIn = r.expires_in;
+  if (typeof expiresIn === "number" && Number.isFinite(expiresIn) && expiresIn > 0) {
+    return new Date(Date.now() + expiresIn * 1000);
+  }
+  if (typeof expiresIn === "string") {
+    const n = Number(expiresIn);
+    if (Number.isFinite(n) && n > 0) return new Date(Date.now() + n * 1000);
+  }
+  return null;
+}
+
 export function setTokenCookie(token: string): string {
   const value = encodeURIComponent(token);
   const parts = [
@@ -78,9 +105,11 @@ export function isTokenValid(request: Request): boolean {
     new RegExp(`(?:^|; )${AUTH_EXPIRATION_COOKIE_NAME}=([^;]*)`)
   );
   const raw = match ? decodeURIComponent(match[1]) : null;
+
+
   if (!raw) return true; // no expiration stored → consider valid
-  const expiresAt = new Date(raw);
-  if (Number.isNaN(expiresAt.getTime())) return true;
+  const expiresAt = parseExpiration(raw);
+  if (!expiresAt) return false; // invalid or un-parseable → treat as expired
   return Date.now() < expiresAt.getTime();
 }
 

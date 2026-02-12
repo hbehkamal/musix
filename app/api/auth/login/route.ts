@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { getApiUrl } from "@/lib/api";
 import {
-  parseExpiration,
+  getExpirationFromLoginResult,
   setTokenCookie,
   setExpirationCookie,
+  DEFAULT_TOKEN_MAX_AGE_SECONDS,
 } from "@/lib/auth";
 
 export async function POST(request: Request) {
@@ -57,17 +58,15 @@ export async function POST(request: Request) {
     );
   }
 
-  const expiration = parseExpiration(
-    result?.access_token_expiration ?? result?.access_token_expration
-  );
+  const expiration =
+    getExpirationFromLoginResult(result) ??
+    new Date(Date.now() + DEFAULT_TOKEN_MAX_AGE_SECONDS * 1000);
 
   const response = NextResponse.json({
     ...data,
     message: "Logged in successfully",
   });
   response.headers.set("Set-Cookie", setTokenCookie(accessToken));
-  if (expiration) {
-    response.headers.append("Set-Cookie", setExpirationCookie(expiration));
-  }
+  response.headers.append("Set-Cookie", setExpirationCookie(expiration));
   return response;
 }
