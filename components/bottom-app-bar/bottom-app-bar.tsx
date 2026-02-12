@@ -1,22 +1,21 @@
-import { Home, Search, Menu, User } from "lucide-react";
+"use client";
+
+import { Compass, Menu, User } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export default function BottomAppBar() {
+  const pathname = usePathname();
+  const isDiscover = pathname === "/" || pathname === "/discovery";
+
   return (
-    <nav className="mt-4 flex items-center justify-between rounded-2xl bg-black/40 px-4 py-2.5 text-[11px] text-neutral-400 backdrop-blur-md">
+    <nav className="relative z-0 mt-auto flex shrink-0 items-center justify-between rounded-2xl bg-black/40 px-4 py-2.5 text-[11px] text-neutral-400 backdrop-blur-md">
       <Link
         href="/"
-        className="flex flex-1 flex-col items-center gap-0.5 text-emerald-400"
+        className={`flex flex-1 flex-col items-center gap-0.5 ${isDiscover ? "text-emerald-400" : ""}`}
       >
-        <Home className="h-5 w-5" strokeWidth={2} />
-        <span className="text-[10px] font-medium tracking-wide">Home</span>
-      </Link>
-      <Link
-        href="/discovery"
-        className="flex flex-1 flex-col items-center gap-0.5"
-      >
-        <Search className="h-5 w-5" strokeWidth={2} />
-        <span className="text-[10px] font-medium tracking-wide">Search</span>
+        <Compass className="h-5 w-5" strokeWidth={2} />
+        <span className="text-[10px] font-medium tracking-wide">Discover</span>
       </Link>
       <button
         type="button"
