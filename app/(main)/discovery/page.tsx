@@ -9,6 +9,7 @@ import {
 import { getDurationDisplay, type Song } from "@/types/song";
 import { useRef, useEffect, useState } from "react";
 import Link from "next/link";
+import { Search, ArrowLeft } from "lucide-react";
 
 const PER_PAGE = 15;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -101,9 +102,7 @@ export default function DiscoveryPage() {
       </div>
 
       <div className="relative">
-        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500">
-          ⌕
-        </span>
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" strokeWidth={2} />
         <input
           type="search"
           value={searchInput}
@@ -155,8 +154,12 @@ export default function DiscoveryPage() {
       </div>
 
       <p className="text-[11px] text-neutral-500">
-        <Link href="/" className="text-emerald-400/90 hover:text-emerald-400">
-          ← Back to player
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 text-emerald-400/90 hover:text-emerald-400"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2} />
+          Back to player
         </Link>
       </p>
     </div>

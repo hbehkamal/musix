@@ -1,3 +1,4 @@
+import { Home, Search, Menu, User } from "lucide-react";
 import Link from "next/link";
 
 export default function BottomAppBar() {
@@ -7,28 +8,28 @@ export default function BottomAppBar() {
         href="/"
         className="flex flex-1 flex-col items-center gap-0.5 text-emerald-400"
       >
-        <span className="text-base">⌂</span>
+        <Home className="h-5 w-5" strokeWidth={2} />
         <span className="text-[10px] font-medium tracking-wide">Home</span>
       </Link>
       <Link
         href="/discovery"
         className="flex flex-1 flex-col items-center gap-0.5"
       >
-        <span className="text-base">⌕</span>
+        <Search className="h-5 w-5" strokeWidth={2} />
         <span className="text-[10px] font-medium tracking-wide">Search</span>
       </Link>
       <button
         type="button"
         className="flex flex-1 flex-col items-center gap-0.5"
       >
-        <span className="text-base">☰</span>
+        <Menu className="h-5 w-5" strokeWidth={2} />
         <span className="text-[10px] font-medium tracking-wide">Library</span>
       </button>
       <button
         type="button"
         className="flex flex-1 flex-col items-center gap-0.5"
       >
-        <span className="text-base">●</span>
+        <User className="h-5 w-5" strokeWidth={2} />
         <span className="text-[10px] font-medium tracking-wide">Profile</span>
       </button>
     </nav>
