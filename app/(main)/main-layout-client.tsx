@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { AudioPlayer } from "@/components/audio-player";
 import { BottomAppBar, TopAppBar } from "@/components/index";
 import { PlayerBottomSheet } from "@/components/player-bottom-sheet";
 import { NowPlayingProvider } from "@/context/now-playing";
@@ -37,6 +38,9 @@ export function MainLayoutClient({
               <div className="min-h-0 flex-1 overflow-auto">{children}</div>
 
               <BottomAppBar />
+
+              {/* Hidden audio element for playback */}
+              <AudioPlayer />
 
               {/* Player sheet sits on TOP of BottomAppBar (higher z-index) */}
               <div className="absolute inset-0 bottom-0 left-0 right-0 z-10 flex flex-col justify-end pointer-events-none [&>*]:pointer-events-auto">

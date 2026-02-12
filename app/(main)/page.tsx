@@ -8,7 +8,7 @@ import {
 } from "@/hooks/useSongs";
 import { getDurationDisplay, type Song } from "@/types/song";
 import { useRef, useEffect, useState } from "react";
-import { Search, Play } from "lucide-react";
+import { Search, Play, Download, Plus } from "lucide-react";
 import { useNowPlaying } from "@/context/now-playing";
 
 const PER_PAGE = 15;
@@ -26,7 +26,8 @@ function SongRow({
   const duration = getDurationDisplay(song);
 
   return (
-    <div className="flex items-center gap-2 border-b border-white/5 py-2.5 last:border-0">
+    <div className="flex items-center gap-2 border-b border-white/5 py-2.5 last:border-0"
+    onClick={() => onPlay(song)}>
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium text-white">{song.title}</p>
         <p className="truncate text-xs text-neutral-400">
@@ -39,19 +40,20 @@ function SongRow({
       </span>
       <button
         type="button"
-        onClick={() => onPlay(song)}
+        onClick={(e) => e.stopPropagation()}
         className="shrink-0 rounded-lg bg-emerald-500/20 p-1.5 text-emerald-400 hover:bg-emerald-500/30"
         aria-label={`Play ${song.title}`}
       >
-        <Play className="h-4 w-4" strokeWidth={2} fill="currentColor" />
+        <Plus className="h-4 w-4" strokeWidth={2} fill="currentColor" />
       </button>
       {hasDownload ? (
         <a
           href={`/api/songs/download/${song.id}`}
           download
+          onClick={(e) => e.stopPropagation()}
           className="shrink-0 rounded-lg bg-emerald-500/20 px-2 py-1.5 text-[11px] font-medium text-emerald-400 hover:bg-emerald-500/30"
         >
-          Download
+          <Download className="h-4 w-4" strokeWidth={2} fill="currentColor" />
         </a>
       ) : (
         <span className="w-14 shrink-0" />
@@ -92,7 +94,7 @@ function LoadMoreSentinel({
 export default function HomePage() {
   const [searchInput, setSearchInput] = useState("");
   const searchTerm = useDebounce(searchInput, SEARCH_DEBOUNCE_MS);
-  const { setCurrentTrack, setPlaying } = useNowPlaying();
+  const { setCurrentTrack, setPlaying, setLoadingAudio } = useNowPlaying();
 
   const {
     data,
@@ -109,15 +111,21 @@ export default function HomePage() {
   );
 
   const handlePlay = (song: Song) => {
+    console.log("🔴🔴🔴 handlePlay", song);
     const durationSeconds = typeof song.duration === "number" ? song.duration : 0;
+    const audioUrl =
+      song.id != null ? `/api/songs/download/${song.id}` : undefined;
     setCurrentTrack({
       title: song.title,
       artist: song.artist,
       coverUrl: DEFAULT_COVER,
       positionSeconds: 0,
       durationSeconds: durationSeconds || 0,
+      audioUrl,
     });
-    setPlaying(true);
+    const willPlay = Boolean(audioUrl);
+    setPlaying(willPlay);
+    if (willPlay) setLoadingAudio(true);
   };
 
   return (

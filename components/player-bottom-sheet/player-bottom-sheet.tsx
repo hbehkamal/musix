@@ -2,15 +2,23 @@
 
 import Image from "next/image";
 import { useRef, useState, useCallback } from "react";
-import { Play, ChevronUp } from "lucide-react";
+import { Play, Pause, ChevronUp, Loader2 } from "lucide-react";
 import { useNowPlaying } from "@/context/now-playing";
 import { Cover, Info, ProgressBar, Controls } from "@/components/player";
 
 const BAR_HEIGHT_PX = 64;
 
 export function PlayerBottomSheet() {
-  const { currentTrack, isPlaying, isExpanded, setExpanded, toggleExpanded } =
-    useNowPlaying();
+  const {
+    currentTrack,
+    isPlaying,
+    isExpanded,
+    isLoadingAudio,
+    setExpanded,
+    setPlaying,
+    toggleExpanded,
+    playbackPositionSeconds,
+  } = useNowPlaying();
   const [dragOffset, setDragOffset] = useState(0);
   const dragStartY = useRef(0);
   const dragStartExpanded = useRef(false);
@@ -82,10 +90,11 @@ export function PlayerBottomSheet() {
     [handleDragEnd, toggleExpanded]
   );
 
-  if (!currentTrack || !isPlaying) return null;
+  if (!currentTrack) return null;
 
-  const progress =
-    (currentTrack.positionSeconds / currentTrack.durationSeconds) * 100;
+  const duration =
+    currentTrack.durationSeconds > 0 ? currentTrack.durationSeconds : 1;
+  const progress = Math.min(100, (playbackPositionSeconds / duration) * 100);
 
   return (
     <>
@@ -155,14 +164,21 @@ export function PlayerBottomSheet() {
           {!isExpanded && (
             <button
               type="button"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-400 text-black hover:bg-emerald-300"
-              aria-label="Play"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-400 text-black hover:bg-emerald-300 disabled:opacity-80"
+              aria-label={isLoadingAudio ? "Loading" : isPlaying ? "Pause" : "Play"}
+              disabled={isLoadingAudio}
               onClick={(e) => {
                 e.stopPropagation();
-                // TODO: wire play/pause
+                if (!isLoadingAudio) setPlaying(!isPlaying);
               }}
             >
-              <Play className="h-5 w-5 ml-0.5" strokeWidth={2} fill="currentColor" />
+              {isLoadingAudio ? (
+                <Loader2 className="h-5 w-5 animate-spin" strokeWidth={2} />
+              ) : isPlaying ? (
+                <Pause className="h-5 w-5" strokeWidth={2} />
+              ) : (
+                <Play className="h-5 w-5 ml-0.5" strokeWidth={2} fill="currentColor" />
+              )}
             </button>
           )}
         </div>
@@ -181,7 +197,7 @@ export function PlayerBottomSheet() {
               />
               <ProgressBar
                 progress={progress}
-                positionSeconds={currentTrack.positionSeconds}
+                positionSeconds={playbackPositionSeconds}
                 durationSeconds={currentTrack.durationSeconds}
               />
               <Controls />

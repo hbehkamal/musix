@@ -1,4 +1,5 @@
 import { TrackInfoProps } from "./info.type";
+import { Plus } from "lucide-react";
 
 export default function Info({ title, artist }: TrackInfoProps) {
     return (<div className="space-y-0.5 px-1">
@@ -16,7 +17,7 @@ export default function Info({ title, artist }: TrackInfoProps) {
             className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-[11px] text-emerald-400 hover:bg-white/10"
             aria-label="Like this track"
           >
-            ♥
+            <Plus className="h-4 w-4" strokeWidth={2} fill="white" />
           </button>
         </div>
       </div>
