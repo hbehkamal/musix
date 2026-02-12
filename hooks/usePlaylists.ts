@@ -1,8 +1,17 @@
 "use client";
 
-import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { Playlist, PlaylistsResponse } from "@/types/playlist";
-import { normalizePlaylistsResponse } from "@/types/playlist";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import type {
+  Playlist,
+  PlaylistsResponse,
+  PlaylistDetail,
+  PlaylistDetailResponse,
+} from "@/types/playlist";
+import {
+  normalizePlaylistsResponse,
+  normalizePlaylistDetailResponse,
+} from "@/types/playlist";
 
 const DEFAULT_PER_PAGE = 15;
 
@@ -162,6 +171,98 @@ export function useDeletePlaylist() {
     mutationFn: deletePlaylist,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["playlists"] });
+    },
+  });
+}
+
+/** Fetch a single playlist with its songs (GET /playlist/<id>). */
+async function fetchPlaylist(id: number): Promise<PlaylistDetail | null> {
+  const res = await fetch(`/api/playlist/${id}`);
+  const data: PlaylistDetailResponse = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(
+      (data as { error?: string })?.error ?? "Failed to fetch playlist"
+    );
+  }
+  const detail = normalizePlaylistDetailResponse(data);
+  if (!detail) throw new Error("Invalid playlist response");
+  return detail;
+}
+
+export function usePlaylist(id: number | null) {
+  return useQuery({
+    queryKey: ["playlist", id],
+    queryFn: () => fetchPlaylist(id!),
+    enabled: id != null,
+  });
+}
+
+/** Add a song to a playlist. */
+export async function addSongToPlaylist(
+  playlistId: number,
+  songId: number
+): Promise<unknown> {
+  const res = await fetch(`/api/playlist/add-song/${playlistId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ song_id: songId }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(
+      (data as { error?: string })?.error ?? "Failed to add song to playlist"
+    );
+  }
+  return data;
+}
+
+/** Remove a song from a playlist. */
+export async function removeSongFromPlaylist(
+  playlistId: number,
+  songId: number
+): Promise<void> {
+  const res = await fetch(`/api/playlist/remove-song/${playlistId}`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ song_id: songId }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(
+      (data as { error?: string })?.error ?? "Failed to remove song from playlist"
+    );
+  }
+}
+
+export function useAddSongToPlaylist() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      playlistId,
+      songId,
+    }: {
+      playlistId: number;
+      songId: number;
+    }) => addSongToPlaylist(playlistId, songId),
+    onSuccess: (_data, { playlistId }) => {
+      void queryClient.invalidateQueries({ queryKey: ["playlist", playlistId] });
+      void queryClient.invalidateQueries({ queryKey: ["playlists"] });
+      toast.success("Added to playlist");
+    },
+  });
+}
+
+export function useRemoveSongFromPlaylist(playlistId: number | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (songId: number) =>
+      removeSongFromPlaylist(playlistId!, songId),
+    onSuccess: () => {
+      if (playlistId != null) {
+        void queryClient.invalidateQueries({ queryKey: ["playlist", playlistId] });
+      }
+      void queryClient.invalidateQueries({ queryKey: ["playlists"] });
+      toast.success("Removed from playlist");
     },
   });
 }

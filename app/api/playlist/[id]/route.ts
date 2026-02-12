@@ -2,6 +2,43 @@ import { NextRequest, NextResponse } from "next/server";
 import { getApiUrl } from "@/lib/api";
 import { getAuthHeaders } from "@/lib/auth";
 
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const apiUrl = getApiUrl();
+  if (!apiUrl) {
+    return NextResponse.json(
+      { error: "Server misconfiguration: API_BASE_URL not set" },
+      { status: 500 }
+    );
+  }
+
+  const { id } = await params;
+  if (!id) {
+    return NextResponse.json({ error: "Missing playlist id" }, { status: 400 });
+  }
+
+  const authHeaders = getAuthHeaders(request);
+  const res = await fetch(`${apiUrl}/playlist/${id}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders,
+    },
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    return NextResponse.json(
+      data?.error ?? data ?? { error: "Failed to fetch playlist" },
+      { status: res.status }
+    );
+  }
+
+  return NextResponse.json(data);
+}
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

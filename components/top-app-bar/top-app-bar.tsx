@@ -1,4 +1,4 @@
-import { ChevronLeft } from "lucide-react";
+import { User } from "lucide-react";
 import { LogoutButton } from "./logout-button";
 
 export default function TopAppBar() {
@@ -9,7 +9,7 @@ export default function TopAppBar() {
         className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-neutral-100 hover:bg-white/10"
         aria-label="Go back"
       >
-        <ChevronLeft className="h-5 w-5" strokeWidth={2} />
+        <User className="h-5 w-5" strokeWidth={2} />
       </button>
       <div className="flex flex-1 flex-col items-center justify-center">
         <span className="text-[10px] uppercase tracking-[0.18em] text-emerald-400/90">

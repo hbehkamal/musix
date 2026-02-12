@@ -1,6 +1,7 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "sonner";
 import { useState, type ReactNode } from "react";
 
 /** Stale-while-revalidate: show cached data immediately, refetch in background */
@@ -31,6 +32,18 @@ function getQueryClient() {
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(getQueryClient);
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      {children}
+      <Toaster
+        position="bottom-center"
+        toastOptions={{
+          style: {
+            background: "rgb(38 38 38)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            color: "white",
+          },
+        }}
+      />
+    </QueryClientProvider>
   );
 }

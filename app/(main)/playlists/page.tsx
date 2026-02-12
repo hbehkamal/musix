@@ -20,6 +20,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 const PER_PAGE = 15;
 const DEFAULT_COVER = "/default-cover.jpeg";
@@ -76,7 +77,10 @@ function PlaylistCard({
   const coverUrl = getPlaylistCoverUrl(playlist.cover);
 
   return (
-    <div className="group flex items-center gap-3 rounded-xl border border-white/5 bg-black/20 py-2.5 pl-2 pr-2 transition hover:bg-white/5">
+    <Link
+      href={`/playlists/${playlist.id}`}
+      className="group flex items-center gap-3 rounded-xl border border-white/5 bg-black/20 py-2.5 pl-2 pr-2 transition hover:bg-white/5"
+    >
       <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-white/10">
         <Image
           src={coverUrl}
@@ -95,7 +99,11 @@ function PlaylistCard({
       <div className="relative shrink-0">
         <button
           type="button"
-          onClick={() => setMenuOpen((o) => !o)}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setMenuOpen((o) => !o);
+          }}
           className="rounded-lg p-2 text-neutral-400 hover:bg-white/10 hover:text-white"
           aria-label="Playlist options"
         >
@@ -111,7 +119,8 @@ function PlaylistCard({
             <div className="absolute right-0 top-full z-50 mt-1 min-w-[140px] rounded-lg border border-white/10 bg-black/90 py-1 shadow-xl backdrop-blur-md">
               <button
                 type="button"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
                   setMenuOpen(false);
                   onEdit(playlist);
                 }}
@@ -122,7 +131,8 @@ function PlaylistCard({
               </button>
               <button
                 type="button"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
                   setMenuOpen(false);
                   onDelete(playlist);
                 }}
@@ -140,7 +150,7 @@ function PlaylistCard({
           </>
         )}
       </div>
-    </div>
+    </Link>
   );
 }
 

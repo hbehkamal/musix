@@ -25,13 +25,6 @@ export default function BottomAppBar() {
         <ListMusic className="h-5 w-5" strokeWidth={2} />
         <span className="text-[10px] font-medium tracking-wide">Playlists</span>
       </Link>
-      <button
-        type="button"
-        className="flex flex-1 flex-col items-center gap-0.5"
-      >
-        <User className="h-5 w-5" strokeWidth={2} />
-        <span className="text-[10px] font-medium tracking-wide">Profile</span>
-      </button>
     </nav>
   );
 }

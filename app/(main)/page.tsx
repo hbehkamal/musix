@@ -6,9 +6,16 @@ import {
   flattenSongsPages,
   type SongsPageResult,
 } from "@/hooks/useSongs";
+import {
+  usePlaylists,
+  flattenPlaylistsPages,
+  useAddSongToPlaylist,
+  type PlaylistsPageResult,
+} from "@/hooks/usePlaylists";
+import type { Playlist } from "@/types/playlist";
 import { getDurationDisplay, type Song } from "@/types/song";
 import { useRef, useEffect, useState } from "react";
-import { Search, Play, Download, Plus } from "lucide-react";
+import { Search, Download, ListMusic, Loader2 } from "lucide-react";
 import { useNowPlaying } from "@/context/now-playing";
 
 const PER_PAGE = 15;
@@ -18,16 +25,28 @@ const DEFAULT_COVER = "/default-cover.jpeg";
 function SongRow({
   song,
   onPlay,
+  playlists,
+  onAddToPlaylist,
+  addToPlaylistState,
 }: {
   song: Song;
   onPlay: (song: Song) => void;
+  playlists: Playlist[];
+  onAddToPlaylist: (playlistId: number, songId: number) => void;
+  addToPlaylistState?: { playlistId: number; songId: number } | null;
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
   const hasDownload = song.id != null;
   const duration = getDurationDisplay(song);
+  const songId = typeof song.id === "number" ? song.id : parseInt(String(song.id), 10);
+  const isAdding =
+    addToPlaylistState?.songId === songId && Number.isFinite(songId);
 
   return (
-    <div className="flex items-center gap-2 border-b border-white/5 py-2.5 last:border-0"
-    onClick={() => onPlay(song)}>
+    <div
+      className="flex items-center gap-2 border-b border-white/5 py-2.5 last:border-0"
+      onClick={() => onPlay(song)}
+    >
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium text-white">{song.title}</p>
         <p className="truncate text-xs text-neutral-400">
@@ -38,14 +57,59 @@ function SongRow({
       <span className="shrink-0 text-[11px] text-neutral-500 tabular-nums">
         {duration}
       </span>
-      <button
-        type="button"
-        onClick={(e) => e.stopPropagation()}
-        className="shrink-0 rounded-lg bg-emerald-500/20 p-1.5 text-emerald-400 hover:bg-emerald-500/30"
-        aria-label={`Play ${song.title}`}
-      >
-        <Plus className="h-4 w-4" strokeWidth={2} fill="currentColor" />
-      </button>
+      <div className="relative shrink-0">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setMenuOpen((o) => !o);
+          }}
+          className="rounded-lg bg-emerald-500/20 p-1.5 text-emerald-400 hover:bg-emerald-500/30"
+          aria-label={`Add ${song.title} to playlist`}
+        >
+          <ListMusic className="h-4 w-4" strokeWidth={2} />
+        </button>
+        {menuOpen && (
+          <>
+            <div
+              className="fixed inset-0 z-40"
+              aria-hidden
+              onClick={() => setMenuOpen(false)}
+            />
+            <div className="absolute right-0 top-full z-50 mt-1 max-h-48 min-w-[160px] overflow-y-auto rounded-lg border border-white/10 bg-black/90 py-1 shadow-xl backdrop-blur-md">
+              {playlists.length === 0 ? (
+                <p className="px-3 py-2 text-xs text-neutral-500">
+                  No playlists. Create one first.
+                </p>
+              ) : (
+                playlists.map((pl) => {
+                  const adding = isAdding && addToPlaylistState?.playlistId === pl.id;
+                  return (
+                    <button
+                      key={pl.id}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAddToPlaylist(pl.id, songId);
+                        setMenuOpen(false);
+                      }}
+                      disabled={isAdding}
+                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-white hover:bg-white/10 disabled:opacity-50"
+                    >
+                      {adding ? (
+                        <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
+                      ) : (
+                        <span className="w-3.5 shrink-0" />
+                      )}
+                      <span className="truncate">{pl.title || "Untitled"}</span>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </>
+        )}
+      </div>
       {hasDownload ? (
         <a
           href={`/api/songs/download/${song.id}`}
@@ -106,12 +170,17 @@ export default function HomePage() {
     isFetchingNextPage,
   } = useSongs({ searchTerm, perPage: PER_PAGE });
 
+  const { data: playlistsData } = usePlaylists({ perPage: 50 });
+  const playlists = flattenPlaylistsPages(
+    playlistsData as { pages: PlaylistsPageResult[] } | undefined
+  );
+  const addToPlaylist = useAddSongToPlaylist();
+
   const songs = flattenSongsPages(
     data as { pages: SongsPageResult[] } | undefined
   );
 
   const handlePlay = (song: Song) => {
-    console.log("🔴🔴🔴 handlePlay", song);
     const durationSeconds = typeof song.duration === "number" ? song.duration : 0;
     const audioUrl =
       song.id != null ? `/api/songs/download/${song.id}` : undefined;
@@ -172,10 +241,23 @@ export default function HomePage() {
             <div className="sticky top-0 z-10 flex gap-2 border-b border-white/10 bg-black/50 py-2 text-[10px] uppercase tracking-wider text-neutral-500 backdrop-blur-sm">
               <span className="flex-1">Title / Artist</span>
               <span className="w-10 shrink-0 text-right">Time</span>
-              <span className="w-16 shrink-0 text-right">Download</span>
+              <span className="w-16 shrink-0 text-right">Actions</span>
             </div>
             {songs.map((song) => (
-              <SongRow key={String(song.id)} song={song} onPlay={handlePlay} />
+              <SongRow
+                key={String(song.id)}
+                song={song}
+                onPlay={handlePlay}
+                playlists={playlists}
+                onAddToPlaylist={(playlistId, songId) =>
+                  addToPlaylist.mutate({ playlistId, songId })
+                }
+                addToPlaylistState={
+                  addToPlaylist.isPending && addToPlaylist.variables
+                    ? addToPlaylist.variables
+                    : null
+                }
+              />
             ))}
             <LoadMoreSentinel
               onVisible={() => fetchNextPage()}
