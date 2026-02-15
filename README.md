@@ -11,7 +11,7 @@ A web music player built with Next.js. Browse and play songs from a catalog, cre
 
 ### Run locally
 
-1. Copy `.env-sample` to `.env` and set `API_BASE_URL` (and optionally `NEXT_PUBLIC_MEDIA_URL` for playlist cover URLs).
+1. Copy `.env-sample` to `.env` and set `API_BASE_URL`.
 2. Install dependencies and start the dev server:
 
 ```bash
