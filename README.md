@@ -2,6 +2,8 @@
 
 A web music player built with Next.js. Browse and play songs from a catalog, create and manage playlists, add or remove tracks, and control playback from a compact mobile-friendly UI.
 
+You can check the deployed version here on vercel: [https://musix-deployed.vercel.app](https://musix-deployed.vercel.app)
+
 ### Features
 
 - **Discover** — Search and stream songs from the catalog
